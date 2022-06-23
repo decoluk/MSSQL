@@ -1,3 +1,4 @@
+ 
 CREATE PROCEDURE [dbo].[sp_DBMigration]
 (
 @pXML XML,
@@ -12,9 +13,9 @@ DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_COMPARE_WITH_LINKSRV</TYPE>
-		<LinkSrv_Name>UATVUTDB02</LinkSrv_Name>
-		<LinkSrv_DB_Name>DSBDB</LinkSrv_DB_Name>
-		<Local_DB_Name>DSBDB_0606</Local_DB_Name>
+		<LinkSrv_Name>LINKSRV_NAME</LinkSrv_Name>
+		<LinkSrv_DB_Name>OLD_DB</LinkSrv_DB_Name>
+		<Local_DB_Name>NEW_DB</Local_DB_Name>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 ------------------------------------------------------------------------
@@ -23,17 +24,17 @@ DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_FOREGIN_KEY_SCRIPT</TYPE>
-		<Local_DB_Name>HITRUST</Local_DB_Name>
+		<Local_DB_Name>DB_NAME</Local_DB_Name>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 ------------------------------------------------------------------------
---GEN COLUMN UPDATE SCRIPT
+--GEN COLUMN UPDATED SCRIPT
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_COLUMN_UPDATE_SCRIPT</TYPE>
-		<OLD_DB_Name>DSBDB</OLD_DB_Name>
-		<NEW_DB_Name>DSBDB_0606</NEW_DB_Name>
+		<OLD_DB_Name>OLD_DB</OLD_DB_Name>
+		<NEW_DB_Name>NEW_DB</NEW_DB_Name>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
@@ -42,57 +43,43 @@ DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_COLUMN_UPDATE_SCRIPT</TYPE>
-		<OLD_DB_Name>HITRUST</OLD_DB_Name>
-		<NEW_DB_Name>HITRUST_0606</NEW_DB_Name>
+		<OLD_DB_Name>OLD_DB</OLD_DB_Name>
+		<NEW_DB_Name>NEW_DB</NEW_DB_Name>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 ------------------------------------------------------------------------
---GET COMPARE STORED PRCOEDURE
-DECLARE @pRtnXML XML
-EXEC [sp_DBMigration] '
-<ROOT>
-		<TYPE>GEN_COMPARE_STORED_PROCEDURE</TYPE>
-		<OLD_DB_Name>HITRUST</OLD_DB_Name>
-		<NEW_DB_Name>HITRUST_0606</NEW_DB_Name>
-</ROOT>',@pRtnXML OUTPUT
-SELECT @pRtnXML
-
+-- 2 DB STORED PROCEDURE Comparison  With Link Server
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_COMPARE_STORED_PROCEDURE_LINKSRV</TYPE>
-		<OLD_DB_Name>BPSS</OLD_DB_Name>
-		<NEW_DB_Name>BPSS</NEW_DB_Name>
-		<LinkSrv_Name>UATVUTDBCB01</LinkSrv_Name>
-		<ExportPath>C:\Temp\20210322\BPSS</ExportPath>
+		<OLD_DB_Name>OLD_DB</OLD_DB_Name>
+		<NEW_DB_Name>NEW_DB</NEW_DB_Name>
+		<LinkSrv_Name>LINK_SERVER</LinkSrv_Name>
+		<ExportPath>C:\XXXXX</ExportPath>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
+
+-- 2 DB STORED PROCEDURE Comparison 
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_COMPARE_STORED_PROCEDURE</TYPE>
-		<OLD_DB_Name>BCMDB</OLD_DB_Name>
-		<NEW_DB_Name>BCMDB_0606</NEW_DB_Name>
-</ROOT>',@pRtnXML OUTPUT
-SELECT @pRtnXML
-
-DECLARE @pRtnXML XML
-EXEC [sp_DBMigration] '
-<ROOT>
-		<TYPE>GEN_COMPARE_STORED_PROCEDURE</TYPE>
-		<OLD_DB_Name>BPSS</OLD_DB_Name>
-		<NEW_DB_Name>BPSS_0606</NEW_DB_Name>
+		<OLD_DB_Name>OLD_DB</OLD_DB_Name>
+		<NEW_DB_Name>NEW_DB</NEW_DB_Name>
+		<ExportPath>C:\XXXXX</ExportPath>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
 ---------
 
+--Execute *.sp File undor folder ImportPath
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>EXECUTE_BATCH_SQL_FILE</TYPE>
-		<ImportPath>D:\temp\2020Aug31\</ImportPath>
+		<ImportPath>C:\XXXX</ImportPath>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
@@ -101,38 +88,30 @@ EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_PREMISSION</TYPE>
 		<USER>MVBREADONLY</USER>
-		<Local_DB_Name>HITRUST_20200901</Local_DB_Name>
+		<Local_DB_Name>DB_NAME</Local_DB_Name>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
+--Search column name
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>SEARCH_INCLUDE_COLUMN</TYPE>
 		<SEARCH_COLUMN>ACNO</SEARCH_COLUMN>
-		<Local_DB_Name>DSBDB</Local_DB_Name>
-		<ExportPath>C:\temp\20200915_DSBDB</ExportPath>
+		<Local_DB_Name>DB_NAME</Local_DB_Name>
+		<ExportPath>C:\XXXXX</ExportPath>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
---------------------------------------------------
-	--''P'',''V'',''FN''
-	DECLARE @pRtnXML XML
-	EXEC [sp_DBMigration] '
-	<ROOT>
-			<TYPE>GEN_SOURCE_CODE</TYPE>
-			<Local_DB_Name>DSBDB</Local_DB_Name> 
-			<FuncType>P</FuncType>
-			<ExportPath>C:\temp\20210308\a</ExportPath>
-	</ROOT>',@pRtnXML OUTPUT
-	SELECT @pRtnXML
+ 
 
+--------GEN DB SCRIPT----------------
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_SOURCE_CODE</TYPE>
-		<Local_DB_Name>DSBDB</Local_DB_Name> 
+		<Local_DB_Name>DB_NAME</Local_DB_Name> 
 		<FuncType>V</FuncType>
-		<ExportPath>C:\temp\20210304\DSBDB\View</ExportPath>
+		<ExportPath>C:\temp\XXXX</ExportPath>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
@@ -140,12 +119,13 @@ DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
 		<TYPE>GEN_SOURCE_CODE</TYPE>
-		<Local_DB_Name>DSBDB</Local_DB_Name> 
+		<Local_DB_Name>DB_NAME</Local_DB_Name> 
 		<FuncType>FN</FuncType>
-		<ExportPath>C:\temp\20210304\DSBDB\Function</ExportPath>
+		<ExportPath>C:\temp\XXXX</ExportPath>
 </ROOT>',@pRtnXML OUTPUT
 SELECT @pRtnXML
 
+------GET TALBE 
 DECLARE @pRtnXML XML
 EXEC [sp_DBMigration] '
 <ROOT>
@@ -153,25 +133,7 @@ EXEC [sp_DBMigration] '
 		<ExportPath>C:\temp\20210304\BPSS\Tables</ExportPath>
 		<SourceFile>C:\Temp\20210304\BPSS_DB.sql</SourceFile>
 </ROOT>',@pRtnXML OUTPUT
-SELECT @pRtnXML
-
-	DROP TABLE db_temp
-	CREATE TABLE db_temp
-	(
-	rData NVARCHAR(MAX)
-	)
-
-	--Copy & paste raw data to table
-	-- SELECT rData FROM db_temp
-
-    BULK INSERT db_temp
-    FROM 'C:\Temp\20210304\BCMDB_DB.sql'  
-	WITH (   
-	FIRSTROW = 1,
-     FieldTerminator = ',', RowTerminator= '\n', KEEPNULLS
-    );  
-	
-	alter table db_temp add RowID BIGINT NOT NULL IDENTITY(1,1)
+ 
 
 */
   
