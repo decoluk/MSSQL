@@ -1,0 +1,182 @@
+ 
+ 
+CREATE PROCEDURE [dbo].[sp_SQLCommandGen](@pTable NVARCHAR(100))
+AS
+BEGIN
+--EXEC sp_SQLCommandGen 'mfbEntity'  
+	DECLARE @sSQL AS NVARCHAR(MAX)
+
+	SELECT c.column_id,t.name,c.name,ty.name,
+	(CASE WHEN ty.name = 'bigint' THEN  
+		'@'+ c.name +'		= CONVERT(BIGINT,T.C.value('''+ c.name +'[1]'', ''NVARCHAR(20)'')),' ELSE
+			CASE WHEN ty.name = 'numeric' THEN 
+				'@'+ c.name +'		= T.C.value('''+ c.name +'[1]'', ''NVARCHAR(20)''),' 
+			ELSE
+				CASE WHEN c.max_length = -1 THEN 
+					'@'+ c.name +'		= T.C.value('''+ c.name +'[1]'', ''NVARCHAR(MAX)''),' 
+				ELSE
+					CASE WHEN ty.name = 'int' THEN 
+						'@'+ c.name +'		= T.C.value('''+ c.name +'[1]'', ''NVARCHAR(12)''),' 
+					ELSE
+						CASE WHEN ty.name = 'bit' THEN 
+							'@'+ c.name +'		= (CASE WHEN T.C.value('''+ c.name +'[1]'', ''NVARCHAR(1)'') = '''' THEN 0 ELSE CASE WHEN T.C.value('''+ c.name +'[1]'', ''NVARCHAR(10)'') = ''false'' THEN 0 ELSE CASE WHEN T.C.value('''+ c.name +'[1]'', ''NVARCHAR(10)'') = ''true'' THEN 1 ELSE CONVERT(BIT,T.C.value('''+ c.name +'[1]'', ''NVARCHAR(1)'')) END END  END),' 
+						ELSE
+							CASE WHEN ty.name = 'datetime' THEN 
+								'@'+ c.name +'		= (CASE WHEN T.C.value('''+ c.name +'[1]'', ''NVARCHAR(25)'') IS NOT NULL THEN CAST(CAST(T.C.value('''+ c.name +'[1]'', ''NVARCHAR(25)'') AS CHAR(8)) AS DATETIME) ELSE NULL END),' 
+							ELSE
+								CASE WHEN ty.name = 'nvarchar' THEN 
+									'@'+ c.name +'		= ISNULL(T.C.value('''+ c.name +'[1]'', ''NVARCHAR('+ CONVERT(NVARCHAR,c.max_length) +')''),''''),' 
+								ELSE
+									CASE WHEN ty.name = 'varchar' THEN 
+										'@'+ c.name +'		= ISNULL(T.C.value('''+ c.name +'[1]'', ''NVARCHAR('+ CONVERT(NVARCHAR,c.max_length/2) +')''),''''),'							
+									ELSE
+										CASE WHEN ty.name = 'uniqueidentifier' THEN 
+											'@'+ c.name +'		= ISNULL(T.C.value('''+ c.name +'[1]'', ''NVARCHAR('+ CONVERT(NVARCHAR,c.max_length) +')''),''''),'							
+										ELSE
+											'@'+ c.name +'		= ISNULL(T.C.value('''+ c.name +'[1]'', ''NVARCHAR('+ CONVERT(NVARCHAR,c.max_length/2) +')''),''''),'							
+										END
+									END
+								END
+							END
+						END
+					END
+				END
+			END
+	END),
+	(CASE WHEN ty.name = 'bigint' THEN  
+		'public int? '+ c.name + ';' 
+		ELSE
+			CASE WHEN ty.name = 'numeric' THEN 
+				'public decimal '+ c.name + ';' 
+			ELSE
+				CASE WHEN c.max_length = -1 THEN 
+					'public string '+ c.name + ';' 
+				ELSE
+					CASE WHEN ty.name = 'int' THEN 
+						'public int? '+ c.name + ';' 
+					ELSE
+						CASE WHEN ty.name = 'bit' THEN 
+							'public bool '+ c.name + ';' 
+						ELSE
+							CASE WHEN ty.name = 'datetime' THEN 
+								'public DateTime? '+ c.name + ';' 
+							ELSE
+								CASE WHEN ty.name = 'uniqueidentifier' THEN
+									'public Guid? '+ c.name + ';' 
+								ELSE
+									'public string '+ c.name + ';' 
+								END
+							END
+						END
+					END
+				END
+			END
+	END),
+	(CASE WHEN ty.name = 'bigint' THEN  
+		'DECLARE @'+ c.name +'	BIGINT' ELSE
+			CASE WHEN ty.name = 'numeric' THEN 
+				'DECLARE @'+ c.name +'	NUMERIC(20,4)'
+			ELSE
+				CASE WHEN c.max_length = -1 THEN 
+					'DECLARE @'+ c.name +'	XML'
+				ELSE
+					CASE WHEN ty.name = 'int' THEN 
+						'DECLARE @'+ c.name +'	INT'
+					ELSE
+						CASE WHEN ty.name = 'bit' THEN 
+							'DECLARE @'+ c.name +'	BIT'
+						ELSE
+							CASE WHEN ty.name = 'datetime' THEN 
+								'DECLARE @'+ c.name +'	DATETIME'
+							ELSE
+								CASE WHEN ty.name = 'uniqueidentifier' THEN
+									'DECLARE @'+ c.name +'	uniqueidentifier'	
+								ELSE
+									'DECLARE @'+ c.name +'	NVARCHAR('+ CONVERT(NVARCHAR,c.max_length/2) +')'
+								END
+							END
+						END
+					END
+				END
+			END
+	END)
+	,
+		(CASE WHEN ty.name = 'bigint' THEN  
+		'<'+ c.name +'>' + '</'+ c.name +'>'  ELSE
+			CASE WHEN ty.name = 'numeric' THEN 
+				'<'+ c.name +'>' + '</'+ c.name +'>'
+			ELSE
+				CASE WHEN c.max_length = -1 THEN 
+					'<'+ c.name +'>' + '</'+ c.name +'>'
+				ELSE
+					CASE WHEN ty.name = 'int' THEN 
+						'<'+ c.name +'>' + '</'+ c.name +'>'
+					ELSE
+						CASE WHEN ty.name = 'bit' THEN 
+							'<'+ c.name +'>' + '</'+ c.name +'>'
+						ELSE
+							CASE WHEN ty.name = 'datetime' THEN 
+								'<'+ c.name +'>' + '</'+ c.name +'>'
+							ELSE
+								'<'+ c.name +'>' + '</'+ c.name +'>'
+							END
+						END
+					END
+				END
+			END
+	END)
+	,c.is_nullable,
+		(CASE WHEN ty.name = 'bigint' THEN  
+			c.name +'	BIGINT,' ELSE
+			CASE WHEN ty.name = 'numeric' THEN 
+				c.name +'	NUMERIC(20,4),'
+			ELSE
+				CASE WHEN c.max_length = -1 THEN 
+					c.name +'	XML,'
+				ELSE
+					CASE WHEN ty.name = 'int' THEN 
+						c.name +'	INT,'
+					ELSE
+						CASE WHEN ty.name = 'smallint' THEN
+							c.name +'	smallint,'	
+						ELSE
+							CASE WHEN ty.name = 'float' THEN
+								c.name +'	float,'	
+							ELSE
+								CASE WHEN ty.name = 'varchar' THEN
+									c.name +'	VARCHAR('+ CONVERT(NVARCHAR,c.max_length) +'),'
+								ELSE
+									CASE WHEN ty.name = 'char' THEN
+										c.name +'	CHAR('+ CONVERT(NVARCHAR,c.max_length) +'),'
+									ELSE
+										CASE WHEN ty.name = 'bit' THEN 
+											c.name +'	BIT,'
+										ELSE
+											CASE WHEN ty.name = 'datetime' THEN 
+												c.name +'	DATETIME,'
+											ELSE
+												c.name +'	NVARCHAR('+ CONVERT(NVARCHAR,c.max_length/2) +'),'
+											END
+										END
+									END
+								END
+							END
+						END
+					END
+				END
+			END
+	END),
+	'DECLARE @tbl_' + @pTable + ' TABLE (','INSERT INTO @tbl_' + @pTable + ' SELECT * FROM ' + @pTable
+	
+	 FROM 
+	sys.columns c INNER JOIN 
+	sys.tables t ON c.object_id = t.object_id INNER JOIN 
+	sys.types ty ON c.system_type_id = ty.system_type_id
+	WHERE t.name IS NOT NULL AND ty.name <> 'sysname'
+	AND t.name = @pTable
+		ORDER BY t.name,c.column_id
+
+
+END
+
+                                                      
